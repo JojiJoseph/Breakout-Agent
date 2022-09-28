@@ -1,6 +1,6 @@
 # Breakout Agent
 
-A computer vision agent that playes breakout.
+A computer vision agent that plays breakout.
 
 No machine learning involved.
 
