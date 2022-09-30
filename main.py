@@ -7,7 +7,7 @@ env = gym.make("Breakout-v4", render_mode="human",frameskip=1, repeat_action_pro
 print(env.unwrapped.get_action_meanings())
 
 obs = env.reset()
-env.unwrapped.ale.setRAM(57,255) # Set lives to 255
+env.unwrapped.ale.setRAM(57,9) # Set lives to 9
 env.unwrapped.ale.setDifficulty(0)
 
 action = 1
@@ -36,7 +36,7 @@ for i in range(10_0000):
     # Find bat location
     mask = cv2.inRange(bat_roi, (180,0,0), (220,74,74))
     ret,_,stats,centroids_bat = cv2.connectedComponentsWithStats(mask)
-    print(stats)
+    # print(stats)
     
     action = 1 # FIRE
 
@@ -48,6 +48,8 @@ for i in range(10_0000):
         x_ball = 8 + centroids_ball[1][0]
         y_ball = 94 + centroids_ball[1][1]
         x_bat = 8 + centroids_bat[1][0]
+        bat_width = stats[1, cv2.CC_STAT_WIDTH]
+        # print(bat_width)
 
         x_hat = (x_ball - pre_x)/math.sqrt((x_ball-pre_x)**2 + (y_ball-pre_y)**2)
         x_target = x_ball + x_hat * (190-y_ball)
@@ -58,10 +60,10 @@ for i in range(10_0000):
 
         # Draw a line till the bat
         
-        if x_target > x_bat + 6:
+        if x_target > x_bat + bat_width/2.5:
             action = 2
             # print("RIGHT")
-        elif x_target < x_bat - 6:
+        elif x_target < x_bat - bat_width/2.5:
             action = 3
             # print("LEFT")
         else:
@@ -77,7 +79,7 @@ for i in range(10_0000):
         break
     if done:
         break
-    print(env.unwrapped.ale.lives())
+    # print(env.unwrapped.ale.lives())
     output = np.concatenate([obs, actual_output], axis=1)
     video_writer.write(output)
 

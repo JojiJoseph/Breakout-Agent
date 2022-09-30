@@ -4,7 +4,7 @@ A computer vision agent that plays breakout.
 
 No machine learning involved.
 
-Disclaimer: I set max lives to 255
+Disclaimer: I set max lives to 9
 
 # Demo
 
