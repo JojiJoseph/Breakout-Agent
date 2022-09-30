@@ -7,7 +7,7 @@ env = gym.make("Breakout-v4", render_mode="human",frameskip=1, repeat_action_pro
 print(env.unwrapped.get_action_meanings())
 
 obs = env.reset()
-env.unwrapped.ale.setRAM(57,9) # Set lives to 9
+env.unwrapped.ale.setRAM(57,255) # Set lives to 255
 env.unwrapped.ale.setDifficulty(0)
 
 action = 1
@@ -79,7 +79,7 @@ for i in range(10_0000):
         break
     if done:
         break
-    # print(env.unwrapped.ale.lives())
+    print(env.unwrapped.ale.lives())
     output = np.concatenate([obs, actual_output], axis=1)
     video_writer.write(output)
 
