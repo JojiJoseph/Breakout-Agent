@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import math
 
-env = gym.make("Breakout-v4", render_mode="human")
+env = gym.make("Breakout-v4", render_mode="human",frameskip=1, repeat_action_probability=0.1)
 print(env.unwrapped.get_action_meanings())
 
 obs = env.reset()
@@ -18,16 +18,16 @@ import time
 pre_action = 2
 pre_x, pre_y = 0, 0 # Previous ball position
 
-video_writer = cv2.VideoWriter("output.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 90, (160,210))
+video_writer = cv2.VideoWriter("output.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 90, (320,210))
 
 for i in range(10_0000):
     obs,_,_,done,_ = env.step(action)
-    video_writer.write(obs[:,:,::-1])
+    actual_output = obs[:,:,::-1].copy()
     pre_action = action
     action = 1
     
-    ball_roi = obs[94:188,8:152]
-    bat_roi = obs[190:195,8:150]
+    ball_roi = obs[94:188,8:154]
+    bat_roi = obs[190:195,8:152]
     
     # Find ball location
     mask = cv2.inRange(ball_roi, (180,0,0), (220,74,74))
@@ -35,7 +35,8 @@ for i in range(10_0000):
     
     # Find bat location
     mask = cv2.inRange(bat_roi, (180,0,0), (220,74,74))
-    ret,_,_,centroids_bat = cv2.connectedComponentsWithStats(mask)
+    ret,_,stats,centroids_bat = cv2.connectedComponentsWithStats(mask)
+    print(stats)
     
     action = 1 # FIRE
 
@@ -52,18 +53,22 @@ for i in range(10_0000):
         x_target = x_ball + x_hat * (190-y_ball)
         if math.sqrt((x_ball-pre_x)**2 + (y_ball-pre_y)**2) == 0:
             x_target = x_ball
+        cv2.line(obs, (int(x_ball), int(y_ball)), (int(x_target), 190), (0,255,0), 2)
         cv2.circle(obs, (int(x_target), 190), 4, (0,255,0), -1)
 
         # Draw a line till the bat
         
-        if x_target > x_bat + 0:
+        if x_target > x_bat + 6:
             action = 2
             # print("RIGHT")
-        elif x_target < x_bat - 0:
+        elif x_target < x_bat - 6:
             action = 3
             # print("LEFT")
         else:
-            action = pre_action
+            if y_ball < 185:
+                action = 0
+            else:
+                action = pre_action
         pre_x = x_ball
         pre_y = y_ball
     
@@ -73,5 +78,7 @@ for i in range(10_0000):
     if done:
         break
     print(env.unwrapped.ale.lives())
+    output = np.concatenate([obs, actual_output], axis=1)
+    video_writer.write(output)
 
 video_writer.release()
