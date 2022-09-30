@@ -1,6 +1,7 @@
 import gym
 import cv2
 import numpy as np
+import math
 
 env = gym.make("Breakout-v4", render_mode="human")
 print(env.unwrapped.get_action_meanings())
@@ -15,6 +16,7 @@ cv2.namedWindow("Output", cv2.WINDOW_NORMAL)
 import time
 
 pre_action = 2
+pre_x, pre_y = 0, 0 # Previous ball position
 
 video_writer = cv2.VideoWriter("output.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 90, (160,210))
 
@@ -43,21 +45,33 @@ for i in range(10_0000):
         cv2.circle(obs, np.int0((8+centroids_ball[1][0], 94 + centroids_ball[1][1])),4,(0,0,255),-1)
         cv2.circle(obs, np.int0((8+centroids_bat[1][0], 190 + centroids_bat[1][1])),4,(0,0,255),-1)
         x_ball = 8 + centroids_ball[1][0]
+        y_ball = 94 + centroids_ball[1][1]
         x_bat = 8 + centroids_bat[1][0]
+
+        x_hat = (x_ball - pre_x)/math.sqrt((x_ball-pre_x)**2 + (y_ball-pre_y)**2)
+        x_target = x_ball + x_hat * (190-y_ball)
+        if math.sqrt((x_ball-pre_x)**2 + (y_ball-pre_y)**2) == 0:
+            x_target = x_ball
+        cv2.circle(obs, (int(x_target), 190), 4, (0,255,0), -1)
+
+        # Draw a line till the bat
         
-        if x_ball > x_bat + 0:
+        if x_target > x_bat + 0:
             action = 2
             # print("RIGHT")
-        elif x_ball < x_bat - 0:
+        elif x_target < x_bat - 0:
             action = 3
             # print("LEFT")
         else:
             action = pre_action
+        pre_x = x_ball
+        pre_y = y_ball
     
     cv2.imshow("Output", obs)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
     if done:
         break
+    print(env.unwrapped.ale.lives())
 
 video_writer.release()
